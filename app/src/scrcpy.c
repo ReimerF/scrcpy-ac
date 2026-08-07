@@ -15,6 +15,7 @@
 #endif
 
 #include "audio_player.h"
+#include "autoclick.h"
 #include "controller.h"
 #include "decoder.h"
 #include "demuxer.h"
@@ -788,8 +789,6 @@ aoa_complete:
     // There is a controller if and only if control is enabled
     assert(options->control == !!controller);
 
-    test_click(controller);
-
     if (options->window) {
         struct sc_screen_params screen_params = {
             .video = options->video_playback,
@@ -937,8 +936,7 @@ aoa_complete:
             LOGW("Could not request start app '%s'", name);
             free(name);
         }
-    }
-
+    };
 
     ret = event_loop(s, options->window);
 
@@ -1066,6 +1064,8 @@ end:
     if (server_started) {
         sc_server_join(&s->server);
     }
+
+    sc_autoclick_click(&s->controller);
 
     sc_server_destroy(&s->server);
 

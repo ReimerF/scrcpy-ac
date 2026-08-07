@@ -1,9 +1,13 @@
-#ifdef SC_AUTOCLICK_H
+#ifndef SC_AUTOCLICK_H
 #define SC_AUTOCLICK_H
 
-struct sc_controller;
+#include "controller.h"
+
+struct sc_autoclick {
+    struct sc_controller *controller;
+};
 
 void
-sc_autoclick_test(struct sc_controller *controller)
+sc_autoclick_click(struct sc_controller *controller);
 
 #endif
