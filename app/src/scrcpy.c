@@ -180,6 +180,39 @@ await_for_server(bool *connected) {
 }
 
 static void
+    test_click(struct sc_controller *controller) {
+        struct sc_control_msg down = {
+            .type = SC_CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT,
+            .inject_touch_event = {
+                .action = AMOTION_EVENT_ACTION_DOWN,
+                .pointer_id = SC_POINTER_ID_MOUSE,
+                .position = {
+                    .point = {
+                        .x = 720,
+                        .y = 1560,
+                    },
+                    .screen_size = {
+                        .width = 1440,
+                        .height = 3120,
+                    },
+                },
+                .pressure = 1.0f,
+                .action_button = AMOTION_EVENT_BUTTON_PRIMARY,
+                .buttons = AMOTION_EVENT_BUTTON_PRIMARY,
+            },
+        };
+
+        struct sc_control_msg up = down;
+        up.inject_touch_event.action = AMOTION_EVENT_ACTION_UP;
+        up.inject_touch_event.pressure = 0.0f;
+        up.inject_touch_event.buttons = 0;
+
+        sc_controller_push_msg(controller, &down);
+        SDL_Delay(10);
+        sc_controller_push_msg(controller, &up);
+    }
+
+static void
 sc_recorder_on_ended(struct sc_recorder *recorder, bool success,
                      void *userdata) {
     (void) recorder;
@@ -316,6 +349,7 @@ set_terminal_title_with_prefix(const char *value) {
     title[9 + trunc_len] = '\0';
     sc_term_set_title(title);
 }
+
 
 enum scrcpy_exit_code
 scrcpy(struct scrcpy_options *options) {
@@ -754,6 +788,8 @@ aoa_complete:
     // There is a controller if and only if control is enabled
     assert(options->control == !!controller);
 
+    test_click(controller);
+
     if (options->window) {
         struct sc_screen_params screen_params = {
             .video = options->video_playback,
@@ -902,6 +938,7 @@ aoa_complete:
             free(name);
         }
     }
+
 
     ret = event_loop(s, options->window);
 
