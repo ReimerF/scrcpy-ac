@@ -56,7 +56,6 @@ sc_autoclick_thread(void *userdata)
     LOGI("Autoclick thread started");
     while (ac->running) {
 
-        LOGI("Click!");
         sc_autoclick_click(ac->controller);
 
         SDL_LockMutex(ac->mutex);
@@ -107,8 +106,6 @@ sc_autoclick_stop(struct sc_autoclick *ac) {
 static void
 sc_autoclick_click(struct sc_controller *controller) {
 
-    LOGI("Sending click");
-
     struct sc_control_msg down = {
         .type = SC_CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT,
         .inject_touch_event = {
@@ -137,10 +134,8 @@ sc_autoclick_click(struct sc_controller *controller) {
     up.inject_touch_event.buttons = 0;
 
     bool ok = sc_controller_push_msg(controller, &down);
-    LOGI("DOWN = %d", ok);
 
     SDL_Delay(10);
 
     ok = sc_controller_push_msg(controller, &up);
-    LOGI("UP = %d", ok);
 }
