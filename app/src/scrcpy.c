@@ -361,6 +361,8 @@ scrcpy(struct scrcpy_options *options) {
 #endif
     struct scrcpy *s = &scrcpy;
 
+    struct sc_autoclick autoclick;
+
     // Minimal SDL initialization
     if (!SDL_Init(SDL_INIT_EVENTS)) {
         LOGE("Could not initialize SDL: %s", SDL_GetError());
@@ -375,6 +377,7 @@ scrcpy(struct scrcpy_options *options) {
     bool file_pusher_initialized = false;
     bool recorder_initialized = false;
     bool recorder_started = false;
+    bool autoclick_initialized = false;
 #ifdef HAVE_V4L2
     bool v4l2_sink_initialized = false;
 #endif
@@ -638,6 +641,12 @@ scrcpy(struct scrcpy_options *options) {
             goto end;
         }
         controller_initialized = true;
+
+        bool ok = sc_autoclick_init(&autoclick, &s->controller);
+        if (!ok) {
+            goto end;
+        }
+        autoclick_initialized = true;
 
         controller = &s->controller;
 
@@ -938,7 +947,9 @@ aoa_complete:
         }
     };
 
+    sc_autoclick_start(&autoclick);
     ret = event_loop(s, options->window);
+    sc_autoclick_stop(&autoclick);
 
     // Reject all new runnables, and execute the pending ones now
     // (they could access memory that will be cleaned up below)
@@ -947,10 +958,14 @@ aoa_complete:
     disconnected = ret == SCRCPY_EXIT_DISCONNECTED;
 
 end:
+    if (autoclick_initialized) {
+        // Stop the autoclick thread before stopping the controller.
+        sc_autoclick_destroy(&autoclick);
+    }
     if (timeout_started) {
         sc_timeout_stop(&s->timeout);
     }
-
+    
     // The demuxer is not stopped explicitly, because it will stop by itself on
     // end-of-stream
 #ifdef HAVE_USB
@@ -1065,9 +1080,7 @@ end:
         sc_server_join(&s->server);
     }
 
-    sc_autoclick_click(&s->controller);
-
-    sc_server_destroy(&s->server);
+    sc_autoclick_destroy(&autoclick);
 
     return ret;
 }
