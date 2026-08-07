@@ -51,8 +51,6 @@ sc_autoclick_thread(void *userdata)
 {
     struct sc_autoclick *ac = userdata;
 
-    SDL_Delay(2000);
-
     LOGI("Autoclick thread started");
     while (ac->running) {
 
