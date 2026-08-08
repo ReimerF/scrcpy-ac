@@ -804,6 +804,7 @@ aoa_complete:
             .camera = options->video_source == SC_VIDEO_SOURCE_CAMERA,
             .flex_display = options->flex_display,
             .controller = controller,
+            .autoclick = &autoclick,
             .fp = fp,
             .kp = kp,
             .mp = mp,

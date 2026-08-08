@@ -10,6 +10,8 @@
 
 struct sc_autoclick {
 
+    bool paused;
+
     struct sc_controller *controller;
 
     struct sc_position position;
@@ -22,6 +24,15 @@ struct sc_autoclick {
 
     int interval_ms;
 };
+
+void
+sc_autoclick_set_paused(struct sc_autoclick *ac, bool paused);
+
+bool
+sc_autoclick_is_paused(const struct sc_autoclick *ac);
+
+void
+sc_autoclick_toggle_paused(struct sc_autoclick *ac);
 
 bool
 sc_autoclick_init(struct sc_autoclick *ac,

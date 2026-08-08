@@ -23,6 +23,7 @@ sc_input_manager_init(struct sc_input_manager *im,
     assert(!params->gp || params->gp->ops);
 
     im->controller = params->controller;
+    im->autoclick = params->autoclick;
     im->fp = params->fp;
     im->screen = params->screen;
     im->kp = params->kp;
@@ -459,10 +460,15 @@ sc_input_manager_process_key(struct sc_input_manager *im,
             }
             return;
     }
-
     if (is_shortcut) {
         enum sc_action action = down ? SC_ACTION_DOWN : SC_ACTION_UP;
         switch (sdl_keycode) {
+            case SDLK_P:
+                LOGI("CTRL P clicked");
+                if (!shift && !repeat && down) {
+                    sc_autoclick_toggle_paused(im->autoclick);
+                }
+                return;
             case SDLK_Z:
                 if (video && down && !repeat) {
                     sc_screen_set_paused(im->screen, !shift);

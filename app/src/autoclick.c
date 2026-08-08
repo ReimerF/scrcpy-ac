@@ -9,7 +9,7 @@
 #include "util/log.h"
 
 static void
-sc_autoclick_click(struct sc_controller *controller);
+sc_autoclick_click(struct sc_autoclick *ac);
 
 
 bool
@@ -19,6 +19,7 @@ sc_autoclick_init(struct sc_autoclick *ac,
     ac->controller = controller;
 
     ac->running = false;
+    ac->paused = true;
 
     ac->interval_ms = 100;
 
@@ -54,17 +55,35 @@ sc_autoclick_thread(void *userdata)
     LOGI("Autoclick thread started");
     while (ac->running) {
 
-        sc_autoclick_click(ac->controller);
+    SDL_LockMutex(ac->mutex);
+    int interval = ac->interval_ms;
+    SDL_UnlockMutex(ac->mutex);
 
-        SDL_LockMutex(ac->mutex);
-        int interval = ac->interval_ms;
-        SDL_UnlockMutex(ac->mutex);
-
-        SDL_Delay(interval);
+    if (!ac->paused) {
+        sc_autoclick_click(ac);
     }
+
+    SDL_Delay(interval);
+}
 
     return 0;
 }
+
+void
+sc_autoclick_set_paused(struct sc_autoclick *ac, bool paused) {
+    ac->paused = paused;
+}
+
+bool
+sc_autoclick_is_paused(const struct sc_autoclick *ac) {
+    return ac->paused;
+}
+
+void
+sc_autoclick_toggle_paused(struct sc_autoclick *ac) {
+    sc_autoclick_set_paused(ac, !sc_autoclick_is_paused(ac));
+}
+
 
 void
 sc_autoclick_start(struct sc_autoclick *ac) {
@@ -75,7 +94,7 @@ sc_autoclick_start(struct sc_autoclick *ac) {
 
     ac->running = true;
 
-    sc_autoclick_click(ac->controller);
+    sc_autoclick_click(ac);
     ac->thread = SDL_CreateThread(
         sc_autoclick_thread,
         "autoclick",
@@ -102,7 +121,7 @@ sc_autoclick_stop(struct sc_autoclick *ac) {
 }
 
 static void
-sc_autoclick_click(struct sc_controller *controller) {
+sc_autoclick_click(struct sc_autoclick *ac) {
 
     struct sc_control_msg down = {
         .type = SC_CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT,
@@ -131,9 +150,9 @@ sc_autoclick_click(struct sc_controller *controller) {
     up.inject_touch_event.pressure = 0.0f;
     up.inject_touch_event.buttons = 0;
 
-    bool ok = sc_controller_push_msg(controller, &down);
+    bool ok = sc_controller_push_msg(ac->controller, &down);
 
     SDL_Delay(10);
 
-    ok = sc_controller_push_msg(controller, &up);
+    ok = sc_controller_push_msg(ac->controller, &up);
 }

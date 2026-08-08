@@ -9,6 +9,7 @@
 #include <SDL3/SDL_keycode.h>
 
 #include "controller.h"
+#include "autoclick.h"
 #include "file_pusher.h"
 #include "options.h"
 #include "trait/gamepad_processor.h"
@@ -21,6 +22,7 @@ struct sc_input_manager {
     struct sc_screen *screen;
 
     struct sc_key_processor *kp;
+    struct sc_autoclick *autoclick;
     struct sc_mouse_processor *mp;
     struct sc_gamepad_processor *gp;
 
@@ -55,6 +57,7 @@ struct sc_input_manager_params {
     struct sc_file_pusher *fp;
     struct sc_screen *screen;
     struct sc_key_processor *kp;
+    struct sc_autoclick *autoclick;
     struct sc_mouse_processor *mp;
     struct sc_gamepad_processor *gp;
     bool camera;
